@@ -1,0 +1,154 @@
+"""
+Command-line interface and terminal renderer for skillpulse.
+"""
+
+import argparse
+import sys
+from pathlib import Path
+from typing import List
+
+from skillpulse.linter import SkillScanner, SkillLinter
+from skillpulse.models import SkillReport, DiagnosticIssue
+
+# Ensure UTF-8 output on Windows consoles if supported
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+# Terminal ANSI Colors
+RESET = "\033[0m"
+BOLD = "\033[1m"
+GREEN = "\033[32m"
+CYAN = "\033[36m"
+YELLOW = "\033[33m"
+RED = "\033[31m"
+GRAY = "\033[90m"
+
+
+def print_banner():
+    banner = rf"""
+{CYAN}{BOLD}  ___ _   _ _ _                 _          
+ / __| |_(_) | |_ __ _  _ | |___ ___ 
+ \__ \ / / | | | '_ \ || | | (_-< / -_)
+ |___/_\_\_|_|_| .__/\_,_|_|_/__/_\___|
+               |_|                     {RESET}
+ {GRAY}AI Agent Skills & MCP (2025-11-25) Linter & Test Harness{RESET}
+"""
+    print(banner)
+
+
+def format_issue(issue: DiagnosticIssue) -> str:
+    if issue.severity == "ERROR":
+        tag = f"{RED}{BOLD}[ERROR]{RESET}"
+    elif issue.severity == "WARNING":
+        tag = f"{YELLOW}{BOLD}[WARN] {RESET}"
+    else:
+        tag = f"{CYAN}[INFO] {RESET}"
+
+    line_info = f" [line {issue.line_number}]" if issue.line_number else ""
+    out = f"    {tag} {BOLD}{issue.rule_id}{RESET}{line_info}: {issue.message}\n"
+    if issue.suggestion:
+        out += f"      {GRAY}-> Fix: {issue.suggestion}{RESET}\n"
+    return out
+
+
+def render_skill_reports(reports: List[SkillReport]) -> int:
+    """Renders skill diagnostic reports to stdout and returns total error count."""
+    total_errors = 0
+    total_warnings = 0
+
+    print(f"{BOLD}=== Agent Skills Validation ==={RESET}\n")
+
+    if not reports:
+        print(f"  {YELLOW}No SKILL.md files detected.{RESET}\n")
+        return 0
+
+    for rep in reports:
+        status_symbol = f"{GREEN}[OK]{RESET}" if rep.is_valid else f"{RED}[FAIL]{RESET}"
+        token_badge = f"{GRAY}(~{rep.token_count} tokens){RESET}"
+        print(f"  {status_symbol} {BOLD}{rep.name}{RESET} {token_badge}")
+        print(f"    {GRAY}Path: {rep.file_path}{RESET}")
+
+        if rep.referenced_tools:
+            tools_str = ", ".join(rep.referenced_tools)
+            print(f"    {GRAY}Referenced Tools: {tools_str}{RESET}")
+
+        if rep.issues:
+            for issue in rep.issues:
+                print(format_issue(issue), end="")
+                if issue.severity == "ERROR":
+                    total_errors += 1
+                elif issue.severity == "WARNING":
+                    total_warnings += 1
+        else:
+            print(f"    {GREEN}All rules passed.{RESET}")
+        print()
+
+    print(f"  Summary: {BOLD}{len(reports)}{RESET} skills checked, "
+          f"{RED}{total_errors} errors{RESET}, {YELLOW}{total_warnings} warnings{RESET}.\n")
+
+    return total_errors
+
+
+def cmd_lint_skills(args: argparse.Namespace) -> int:
+    """Executes skill linter only."""
+    print_banner()
+    target_path = Path(args.path).resolve()
+    skill_files = SkillScanner.find_skills(target_path)
+    reports = [SkillLinter.lint_file(p) for p in skill_files]
+    errors = render_skill_reports(reports)
+    return 1 if errors > 0 else 0
+
+
+def create_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="skillpulse",
+        description="Linter, test harness, and diagnostics for Agent Skills & MCP (2025-11-25) schemas."
+    )
+    subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
+
+    # lint-skills
+    p_lint = subparsers.add_parser("lint-skills", help="Lint Agent Skills (SKILL.md)")
+    p_lint.add_argument("path", nargs="?", default=".", help="Directory or file path to lint")
+
+    # test-mcp (placeholder in Slice 1, implemented in Slice 2)
+    p_mcp = subparsers.add_parser("test-mcp", help="Validate MCP tool schemas and contracts")
+    p_mcp.add_argument("config", nargs="?", default="mcp_tools.json", help="Path to MCP tools JSON file")
+
+    # scan
+    p_scan = subparsers.add_parser("scan", help="Run full scan (Skills + MCP)")
+    p_scan.add_argument("path", nargs="?", default=".", help="Target workspace path")
+    p_scan.add_argument("--skills-dir", default=None, help="Specific skills directory")
+    p_scan.add_argument("--mcp-config", default=None, help="Specific MCP tools JSON file")
+    p_scan.add_argument("--report", default="skillpulse-report.html", help="Path for HTML report output")
+
+    # report
+    p_rep = subparsers.add_parser("report", help="Generate HTML report from scan results")
+    p_rep.add_argument("input", nargs="?", default=None, help="Input results JSON file")
+    p_rep.add_argument("--output", default="skillpulse-report.html", help="HTML report output path")
+
+    return parser
+
+
+def main(argv: List[str] = None) -> int:
+    parser = create_parser()
+    args = parser.parse_args(argv)
+
+    if not args.command or args.command == "scan":
+        if not hasattr(args, "path"):
+            args.path = "."
+        return cmd_lint_skills(args)
+    elif args.command == "lint-skills":
+        return cmd_lint_skills(args)
+    elif args.command == "test-mcp":
+        print("MCP validator will be executed via Slice 2.")
+        return 0
+    else:
+        parser.print_help()
+        return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
