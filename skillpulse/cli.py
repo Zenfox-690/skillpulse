@@ -3,13 +3,15 @@ Command-line interface and terminal renderer for skillpulse.
 """
 
 import argparse
+from datetime import datetime
 import sys
 from pathlib import Path
 from typing import List, Optional
 
 from skillpulse.linter import SkillScanner, SkillLinter
 from skillpulse.mcp_tester import MCPConfigDiscovery, MCPContractValidator
-from skillpulse.models import SkillReport, MCPReport, DiagnosticIssue
+from skillpulse.scorer import HealthScorer
+from skillpulse.models import SkillReport, MCPReport, ScanResult, DiagnosticIssue
 
 # Ensure UTF-8 output on Windows consoles if supported
 if hasattr(sys.stdout, "reconfigure"):
@@ -142,6 +144,18 @@ def render_mcp_report(report: MCPReport) -> int:
     return total_errors
 
 
+def render_scan_summary(scan: ScanResult):
+    """Renders final executive health score summary block."""
+    color = GREEN if scan.health_score >= 90 else (CYAN if scan.health_score >= 80 else (YELLOW if scan.health_score >= 70 else RED))
+
+    print(f"{BOLD}===================================================={RESET}")
+    print(f"  {BOLD}Ecosystem Health Score:{RESET} {color}{BOLD}{scan.health_score}%{RESET} ({scan.grade})")
+    print(f"  {GRAY}{HealthScorer.grade_description(scan.grade, scan.total_errors)}{RESET}")
+    print(f"  {BOLD}Total Critical Errors:{RESET} {RED if scan.total_errors else GREEN}{scan.total_errors}{RESET}")
+    print(f"  {BOLD}Total Warnings:{RESET} {YELLOW if scan.total_warnings else GREEN}{scan.total_warnings}{RESET}")
+    print(f"{BOLD}===================================================={RESET}\n")
+
+
 def cmd_lint_skills(args: argparse.Namespace) -> int:
     """Executes skill linter only."""
     print_banner()
@@ -165,13 +179,54 @@ def cmd_test_mcp(args: argparse.Namespace) -> int:
             print(f"{RED}Error: MCP config not found at '{args.config}' and none discovered in workspace.{RESET}")
             return 1
 
-    # Also discover skills for cross-checking if in a repo
     skill_files = SkillScanner.find_skills(Path.cwd())
     scanned_skills = [SkillLinter.lint_file(p) for p in skill_files]
 
     report = MCPContractValidator.validate_file(config_path, scanned_skills)
     errors = render_mcp_report(report)
     return 1 if errors > 0 else 0
+
+
+def cmd_scan(args: argparse.Namespace) -> int:
+    """Executes full unified scan (Skills + MCP) and prints health score."""
+    print_banner()
+    workspace_root = Path(args.path).resolve()
+
+    # 1. Discover and lint skills
+    skills_dir = Path(args.skills_dir).resolve() if args.skills_dir else workspace_root
+    skill_files = SkillScanner.find_skills(skills_dir)
+    skill_reports = [SkillLinter.lint_file(p) for p in skill_files]
+    render_skill_reports(skill_reports)
+
+    # 2. Discover and validate MCP config
+    mcp_report: Optional[MCPReport] = None
+    if args.mcp_config:
+        mcp_path = Path(args.mcp_config).resolve()
+    else:
+        mcp_path = MCPConfigDiscovery.find_mcp_config(workspace_root)
+
+    if mcp_path and mcp_path.exists():
+        mcp_report = MCPContractValidator.validate_file(mcp_path, skill_reports)
+        render_mcp_report(mcp_report)
+    else:
+        print(f"{BOLD}=== Model Context Protocol (MCP) ==={RESET}\n")
+        print(f"  {YELLOW}No MCP tool definition file (mcp_tools.json) found.{RESET}\n")
+
+    # 3. Calculate health score
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    scan_result = HealthScorer.score_scan(skill_reports, mcp_report, str(workspace_root), timestamp)
+    render_scan_summary(scan_result)
+
+    # 4. Generate HTML report if reporter is available
+    report_path = Path(args.report).resolve()
+    try:
+        from skillpulse.reporter import HTMLReporter
+        HTMLReporter.generate(scan_result, report_path)
+        print(f"  {GREEN}[OK] Visual diagnostic report generated:{RESET} {CYAN}{report_path}{RESET}\n")
+    except ImportError:
+        pass
+
+    return 1 if scan_result.total_errors > 0 else 0
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -211,11 +266,20 @@ def main(argv: List[str] = None) -> int:
     if not args.command or args.command == "scan":
         if not hasattr(args, "path"):
             args.path = "."
-        return cmd_lint_skills(args)
+        if not hasattr(args, "skills_dir"):
+            args.skills_dir = None
+        if not hasattr(args, "mcp_config"):
+            args.mcp_config = None
+        if not hasattr(args, "report"):
+            args.report = "skillpulse-report.html"
+        return cmd_scan(args)
     elif args.command == "lint-skills":
         return cmd_lint_skills(args)
     elif args.command == "test-mcp":
         return cmd_test_mcp(args)
+    elif args.command == "report":
+        print(f"Report will be generated via Slice 4.")
+        return 0
     else:
         parser.print_help()
         return 0

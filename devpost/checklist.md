@@ -29,7 +29,7 @@ Build mode: fast
   Learner check: Run `python -m skillpulse test-mcp examples/sample_mcp_tools.json` and verify compliant tool schemas pass while ghost tools in test fixtures are accurately flagged.
   Commit: `feat(mcp): implement deterministic MCP 2025-11-25 schema and ghost tool contract validator`
 
-- [ ] **3. Ecosystem Health Scorer & Unified CLI Scan**
+- [x] **3. Ecosystem Health Scorer & Unified CLI Scan**
   Becomes usable: `python -m skillpulse scan` executes combined scanning of both skills and MCP tools in a single command, computing the deterministic 0–100 Ecosystem Health Score, letter grade (A/B/C/F), ANSI summary table, and returning standard CI exit codes.
   Why now: Synthesizes both subsystems into the unified developer workflow and enables CI/CD automation.
   PRD ref: `prd.md > Features and Behavior > 3. Ecosystem Health Scoring`, `prd.md > Unified CLI Interface`
