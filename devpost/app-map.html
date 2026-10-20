@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>skillpulse &mdash; Application Map &amp; Code Tour</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(18, 24, 38, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #06b6d4;
+      --accent: #10b981;
+      --warning: #f59e0b;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #152238 0%, var(--bg) 70%);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding: 2.5rem 1.5rem;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    header { text-align: center; margin-bottom: 2.5rem; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 9999px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle { color: var(--text-muted); font-size: 1.05rem; max-width: 650px; margin: 0 auto; }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .diagram-wrap {
+      background: #0b101b;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+
+    .route-step {
+      padding: 1rem;
+      background: #111827;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      margin-bottom: 0.85rem;
+    }
+
+    .step-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.25rem;
+    }
+
+    .step-path {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--primary);
+      margin-bottom: 0.4rem;
+    }
+
+    .step-desc { font-size: 0.9rem; color: var(--text-muted); }
+
+    .pointer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+      .pointer-grid { grid-template-columns: 1fr; }
+    }
+
+    .pointer-box {
+      background: #111827;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .pointer-box strong { color: var(--accent); display: block; font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .pointer-box code { font-family: var(--font-mono); font-size: 0.8rem; color: var(--primary); }
+    .pointer-box p { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    .practice-box {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--card-border);
+      padding-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Devpost Learn &middot; Phase 5-build Artifact</div>
+      <h1>skillpulse Application Map</h1>
+      <p class="subtitle">Architectural Take-Home Guide: Code Paths, Extension Points, and Reusable Practices</p>
+    </header>
+
+    <!-- Overview -->
+    <div class="card">
+      <h2>App Overview</h2>
+      <p style="color: #cbd5e1; font-size: 0.95rem;">
+        <strong>skillpulse</strong> is a lightweight developer linter and cross-contract test harness for AI Agent Skills (<code>SKILL.md</code>) and Model Context Protocol (<code>MCP 2025-11-25</code>) tool definitions. It scans workspace configurations, validates YAML frontmatter and JSON parameter schemas, detects Ghost Tools, calculates a composite 0&ndash;100% Health Score, and compiles a self-contained visual HTML dashboard.
+      </p>
+    </div>
+
+    <!-- Core Action Flow Diagram -->
+    <div class="card">
+      <h2>Core Action Flow: <code>skillpulse scan</code></h2>
+      <div class="diagram-wrap">
+        <svg width="780" height="130" viewBox="0 0 780 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- CLI -->
+          <rect x="10" y="35" width="160" height="60" rx="8" fill="#131e33" stroke="#06b6d4" stroke-width="2"/>
+          <text x="90" y="62" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">1. CLI Ingestion</text>
+          <text x="90" y="80" fill="#9ca3af" font-size="11" text-anchor="middle">skillpulse/cli.py</text>
+
+          <path d="M170 65 L210 65" stroke="#06b6d4" stroke-width="2"/>
+
+          <!-- Linter & MCP -->
+          <rect x="210" y="25" width="190" height="80" rx="8" fill="#131e33" stroke="#10b981" stroke-width="2"/>
+          <text x="305" y="52" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">2. Dual Validators</text>
+          <text x="305" y="70" fill="#10b981" font-size="11" text-anchor="middle">linter.py &bull; mcp_tester.py</text>
+          <text x="305" y="88" fill="#9ca3af" font-size="10" text-anchor="middle">Frontmatter &amp; Tool Contracts</text>
+
+          <path d="M400 65 L440 65" stroke="#10b981" stroke-width="2"/>
+
+          <!-- Scorer -->
+          <rect x="440" y="35" width="150" height="60" rx="8" fill="#131e33" stroke="#f59e0b" stroke-width="2"/>
+          <text x="515" y="62" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">3. Health Scorer</text>
+          <text x="515" y="80" fill="#9ca3af" font-size="11" text-anchor="middle">skillpulse/scorer.py</text>
+
+          <path d="M590 65 L630 65" stroke="#f59e0b" stroke-width="2"/>
+
+          <!-- Reporter -->
+          <rect x="630" y="35" width="140" height="60" rx="8" fill="#131e33" stroke="#a855f7" stroke-width="2"/>
+          <text x="700" y="62" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">4. HTML Report</text>
+          <text x="700" y="80" fill="#9ca3af" font-size="11" text-anchor="middle">report.html</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Code Stops -->
+    <div class="card">
+      <h2>Key Code Locations (Reference Route)</h2>
+      
+      <div class="route-step">
+        <div class="step-title">Stop 1: Entry Point &amp; Command Coordination</div>
+        <div class="step-path">skillpulse/cli.py &rarr; cmd_scan()</div>
+        <div class="step-desc">Discovers project boundaries, coordinates <code>SkillScanner</code> and <code>MCPConfigDiscovery</code>, invokes scorers, and outputs ANSI terminal results.</div>
+      </div>
+
+      <div class="route-step">
+        <div class="step-title">Stop 2: Frontmatter Parsing &amp; Token Estimation</div>
+        <div class="step-path">skillpulse/linter.py &rarr; SkillLinter.lint_text()</div>
+        <div class="step-desc">Evaluates rules <code>SKILL001</code>&ndash;<code>SKILL005</code>, enforces YAML delimiters, measures token budget, and extracts referenced tools.</div>
+      </div>
+
+      <div class="route-step">
+        <div class="step-title">Stop 3: MCP 2025-11-25 Schema &amp; Ghost Tool Cross-Checker</div>
+        <div class="step-path">skillpulse/mcp_tester.py &rarr; MCPContractValidator.validate_tools_data()</div>
+        <div class="step-desc">Validates JSON Schema parameters, ensures type object conformance, and detects Ghost Tools (called in prompt instructions but absent from MCP declarations).</div>
+      </div>
+
+      <div class="route-step">
+        <div class="step-title">Stop 4: Self-Contained Visual HTML Dashboard Compiler</div>
+        <div class="step-path">skillpulse/reporter.py &rarr; HTMLReporter.build_html()</div>
+        <div class="step-desc">Compiles all scan diagnostics into an offline-ready single-file HTML dashboard with embedded dark-theme CSS and interactive JavaScript filters.</div>
+      </div>
+    </div>
+
+    <!-- Pointers -->
+    <div class="card">
+      <h2>To Change This, Start Here</h2>
+      <div class="pointer-grid">
+        <div class="pointer-box">
+          <strong>Add a New Skill Linter Rule</strong>
+          <code>skillpulse/linter.py</code>
+          <p>Add inspection logic to <code>SkillLinter.lint_text()</code> and define an issue with rule ID (e.g. <code>SKILL006</code>).</p>
+        </div>
+        <div class="pointer-box">
+          <strong>Add an MCP Schema Check</strong>
+          <code>skillpulse/mcp_tester.py</code>
+          <p>Extend <code>MCPContractValidator.validate_tools_data()</code> to inspect additional schema fields (e.g., return types or annotations).</p>
+        </div>
+        <div class="pointer-box">
+          <strong>Tune Health Score Penalties</strong>
+          <code>skillpulse/scorer.py</code>
+          <p>Adjust weighting factors in <code>HealthScorer.calculate_score()</code> (default: -25 errors, -10 warnings, -2 info).</p>
+        </div>
+        <div class="pointer-box">
+          <strong>Customize HTML Dashboard Theme</strong>
+          <code>skillpulse/reporter.py</code>
+          <p>Modify CSS custom properties in <code>build_html()</code> (<code>--bg</code>, <code>--primary</code>, <code>--accent</code>).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Practice to Reuse -->
+    <div class="card">
+      <h2>A Practice to Reuse</h2>
+      <div class="practice-box">
+        <p style="color: #cbd5e1; font-size: 0.95rem;">
+          <strong>Deterministic Cross-Contract Validation:</strong> Instead of relying on fragile live subprocess execution over OS pipes (which frequently deadlocks or hangs under diverse operating system shells), validating protocol specifications and prompt references as deterministic schema contracts delivers sub-millisecond execution, complete reproducibility in CI, and 100% cross-platform reliability.
+        </p>
+      </div>
+    </div>
+
+    <!-- Run Instructions -->
+    <div class="card">
+      <h2>How to Run</h2>
+      <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 0.5rem;">Run the test suite or scan the workspace:</p>
+      <pre style="background: #090d16; padding: 0.75rem 1rem; border-radius: 8px; font-family: var(--font-mono); font-size: 0.85rem; color: #38bdf8;">python -m pytest tests/ -v
+python -m skillpulse scan --skills-dir .agents/skills --mcp-config examples/sample_mcp_tools.json
+start skillpulse-report.html</pre>
+    </div>
+
+    <footer>
+      <p>Artifact generated for Devpost Learn &middot; Build With AI: Basics &amp; Amazon Developer Hackathon</p>
+    </footer>
+  </div>
+</body>
+</html>

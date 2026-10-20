@@ -1,0 +1,35 @@
+{
+  "$schema": "https://spec.modelcontextprotocol.io/schema/2025-11-25/tools.json",
+  "tools": [
+    {
+      "name": "search_hackathons",
+      "description": "Searches active hackathons by topic or keyword.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search keyword"
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "broken_schema_tool",
+      "description": "A tool intentionally missing the required inputSchema property."
+    },
+    {
+      "name": "legacy_orphan_tool",
+      "description": "A valid MCP tool that is never referenced in any skill.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "flag": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  ]
+}

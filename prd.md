@@ -47,10 +47,12 @@ Source: `scope.md > The Unique Kernel` and `scope.md > The POC Boundary`.
   - `SKILL003`: Required `description` attribute present (descriptive, action-oriented).
   - `SKILL004`: Recommended trigger phrase or activation cues present.
   - `SKILL005`: Token budget warning if body exceeds 2,500 estimated tokens.
+  - `SKILL006`: Broken relative markdown link warning (flags local relative links to non-existent files).
 - **Acceptance Criteria:**
   - [x] Correctly identifies valid vs. malformed YAML frontmatter.
   - [x] Emits error if `name` or `description` is missing or invalid.
   - [x] Accurately estimates token usage within 10% of standard BPE tokenizers.
+  - [x] Detects broken local relative markdown links.
 
 ### 2. MCP 2025-11-25 Contract & Schema Validator
 - Implements `scope.md > The POC Boundary > MCP Server Test Harness`.
@@ -58,8 +60,8 @@ Source: `scope.md > The Unique Kernel` and `scope.md > The POC Boundary`.
 - **Rules Evaluated:**
   - `MCP001`: Valid MCP `2025-11-25` tool specification format (array of tool definitions).
   - `MCP002`: Tool Schema Completeness: each tool requires non-empty `name`, `description`, and valid `inputSchema` (`type: "object"`, `properties` object).
-  - `MCP003`: Ghost Tool Detection: flags tool references in `SKILL.md` that are not declared in the MCP tools manifest.
-  - `MCP004`: Undocumented / Orphan MCP Tool Warning: flags declared MCP tools that have no description or are never referenced across skills.
+  - `MCP003`: Ghost Tool Detection: flags tool references in `SKILL.md` that are not declared in the MCP tools manifest (Error, -20 pts).
+  - `MCP004`: Undocumented / Orphan MCP Tool Warning: flags declared MCP tools that have no description or are never referenced across skills (Warning, -5 pts).
 - **Acceptance Criteria:**
   - [x] Successfully validates standard compliant MCP 2025-11-25 tool schemas.
   - [x] Flags missing `inputSchema`, invalid types, or missing properties.
@@ -69,8 +71,8 @@ Source: `scope.md > The Unique Kernel` and `scope.md > The POC Boundary`.
 ### 3. Ecosystem Health Scoring
 - Implements `scope.md > The Unique Kernel`.
 - **Behavior:** Calculates a deterministic health score from 0 to 100:
-  $$\text{Score} = \max(0, 100 - (25 \times \text{Errors}) - (10 \times \text{Warnings}) - (2 \times \text{Info}))$$
-- **Letter Grades:** 90–100: Grade A (Excellent), 80–89: Grade B (Good), 70–79: Grade C (Needs Improvement), <70: Grade F (Failing).
+  $$\text{Score} = \max(0, 100 - (20 \times \text{total\_errors}) - (5 \times \text{total\_warnings}))$$
+- **Letter Grades:** 90–100: Grade A (Excellent), 80–89: Grade B (Good), 70–79: Grade C (Needs Improvement), 60–69: Grade D (Poor), <60: Grade F (Failing).
 - **Acceptance Criteria:**
   - [x] Clean run with no issues scores 100 (Grade A).
   - [x] Flawed run reflects exact weighted penalty deductions.

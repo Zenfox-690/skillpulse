@@ -1,0 +1,60 @@
+{
+  "$schema": "https://spec.modelcontextprotocol.io/schema/2025-11-25/tools.json",
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Retrieve current weather forecasts and temperature for a given city.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City name or ZIP code"
+          },
+          "unit": {
+            "type": "string",
+            "enum": ["celsius", "fahrenheit"],
+            "description": "Temperature unit"
+          }
+        },
+        "required": ["location"]
+      }
+    },
+    {
+      "name": "search_code",
+      "description": "Fast regex and lexical search across repository source files.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search pattern or symbol name"
+          },
+          "language": {
+            "type": "string",
+            "description": "Target programming language"
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "post_comment",
+      "description": "Publish automated review findings and suggestions to a GitHub pull request.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pr_number": {
+            "type": "integer",
+            "description": "Pull request identifier"
+          },
+          "comment": {
+            "type": "string",
+            "description": "Markdown comment text"
+          }
+        },
+        "required": ["pr_number", "comment"]
+      }
+    }
+  ]
+}

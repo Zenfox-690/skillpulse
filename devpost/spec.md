@@ -17,7 +17,7 @@ Implements `prd.md > The Core Journey`.
 
 1. **User Invokes CLI:** `skillpulse scan` is entered in terminal.
 2. **Path Discovery:** `cli.py` invokes `linter.SkillScanner` and `mcp_tester.MCPConfigDiscovery`.
-3. **Skill Parsing:** `linter.SkillLinter.lint_file(path)` extracts frontmatter delimiters (`---`), parses YAML properties, executes validation rules (`SKILL001`–`SKILL005`), and computes token load estimates.
+3. **Skill Parsing:** `linter.SkillLinter.lint_file(path)` extracts frontmatter delimiters (`---`), parses YAML properties, executes validation rules (`SKILL001`–`SKILL006`), and computes token load estimates.
 4. **MCP Contract & Schema Validation:** `mcp_tester.MCPContractValidator.validate(tools_data, skills)` parses the JSON tool schemas, verifies `MCP001` (spec format) and `MCP002` (schema completeness), and cross-checks referenced tools in `skills` for `MCP003` (ghost tools) and `MCP004` (undocumented/orphan tools).
 5. **Health Calculation:** `scorer.HealthScorer.calculate(results)` tallies issues, computes penalties, and derives the composite score and letter grade.
 6. **Output Delivery:** `cli.py` prints ANSI diagnostic tables to stdout and calls `reporter.HTMLReporter.generate(results, "skillpulse-report.html")`.
@@ -68,7 +68,7 @@ Carried forward from `prd.md > Look and Feel`:
 - Implements `prd.md > Agent Skill Static Linter`.
 - Discovers `SKILL.md` files recursively in specified directories.
 - Extracts frontmatter between `---` markers.
-- Evaluates rules `SKILL001` through `SKILL005`.
+- Evaluates rules `SKILL001` through `SKILL006` (including frontmatter schema, token budgets, and local relative markdown links).
 - Provides heuristic token budget calculation (~1.3 tokens per word).
 
 ### 3. MCPContractValidator (`skillpulse/mcp_tester.py`)
@@ -81,8 +81,8 @@ Carried forward from `prd.md > Look and Feel`:
 ### 4. HealthScorer (`skillpulse/scorer.py`)
 - Implements `prd.md > Ecosystem Health Scoring`.
 - Implements deterministic scoring formula:
-  $$\text{Score} = \max(0, 100 - (25 \times \text{Errors}) - (10 \times \text{Warnings}) - (2 \times \text{Info}))$$
-- Assigns letter grades: A (90–100), B (80–89), C (70–79), F (<70).
+  $$\text{Score} = \max(0, 100 - (20 \times \text{total\_errors}) - (5 \times \text{total\_warnings}))$$
+- Assigns letter grades: A (90–100), B (80–89), C (70–79), D (60–69), F (<60).
 
 ### 5. HTMLReporter (`skillpulse/reporter.py`)
 - Implements `prd.md > Self-Contained HTML Report Generator`.
@@ -148,11 +148,15 @@ skillpulse/
 │   ├── test_scorer.py        # Health score calculation unit tests
 │   └── test_cli.py           # End-to-end CLI command tests
 ├── examples/                 # Sample skills and MCP config for demo
-│   ├── valid_skill/
-│   │   └── SKILL.md
-│   ├── invalid_skill/
-│   │   └── SKILL.md
-│   └── sample_mcp_tools.json # Reference MCP 2025-11-25 tool definitions
+│   ├── healthy_workspace/    # Reference 100% Grade A workspace (0 errors, 0 warnings)
+│   │   ├── skills/
+│   │   │   ├── opportunity-scout/SKILL.md
+│   │   │   └── rule-auditor/SKILL.md
+│   │   └── mcp_tools.json
+│   ├── broken_workspace/     # Broken demo workspace (ghost & orphan tools, schema error)
+│   │   ├── skills/broken-skill/SKILL.md
+│   │   └── mcp_tools.json
+│   └── sample_mcp_tools.json # Legacy reference MCP 2025-11-25 tool definitions
 ├── .gitignore
 ├── LICENSE                   # MIT License
 ├── pyproject.toml            # Python packaging metadata & entrypoint
@@ -177,5 +181,5 @@ skillpulse/
 - **Word-based Heuristic Token Estimation vs. tiktoken Binary:** Heuristic estimation (~1.3 tokens per word) eliminates large binary wheel dependencies and C-compiler requirements on Windows while delivering ~95% estimation accuracy.
 
 ## Decisions and Open Issues
-- **Tool Reference Extraction:** `linter.py` extracts tool mentions from frontmatter `tools:` lists and regex patterns like `` `tool_name` `` or `tool_name(...)` to automatically compare against MCP tool catalogs.
+- **Tool Reference Extraction:** `linter.py` extracts tool mentions only from explicit frontmatter lists (`mcp_tools`, `tools`) or backticked identifiers in markdown sections containing "MCP" or "Tools" in their heading, deliberately excluding sibling skill names (`1-start`, `2-scope`, etc.) to prevent false positives.
 - **No Open Issues:** The technical specification is complete, sized appropriately for the proof of concept, and ready for immediate implementation in `5-build`.
