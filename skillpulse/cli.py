@@ -229,6 +229,26 @@ def cmd_scan(args: argparse.Namespace) -> int:
     return 1 if scan_result.total_errors > 0 else 0
 
 
+def cmd_report(args: argparse.Namespace) -> int:
+    """Generates visual HTML report from full scan or specific inputs."""
+    print_banner()
+    workspace_root = Path.cwd()
+    skill_files = SkillScanner.find_skills(workspace_root)
+    skill_reports = [SkillLinter.lint_file(p) for p in skill_files]
+
+    mcp_path = MCPConfigDiscovery.find_mcp_config(workspace_root)
+    mcp_report = None
+    if mcp_path and mcp_path.exists():
+        mcp_report = MCPContractValidator.validate_file(mcp_path, skill_reports)
+
+    from skillpulse.reporter import HTMLReporter
+    scan_result = HealthScorer.score_scan(skill_reports, mcp_report, str(workspace_root), datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    out_path = Path(args.output).resolve()
+    HTMLReporter.generate(scan_result, out_path)
+    print(f"  {GREEN}[OK] Visual diagnostic report generated:{RESET} {CYAN}{out_path}{RESET}\n")
+    return 0
+
+
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="skillpulse",
@@ -253,7 +273,7 @@ def create_parser() -> argparse.ArgumentParser:
 
     # report
     p_rep = subparsers.add_parser("report", help="Generate HTML report from scan results")
-    p_rep.add_argument("input", nargs="?", default=None, help="Input results JSON file")
+    p_rep.add_argument("input", nargs="?", default=None, help="Input results JSON file (optional)")
     p_rep.add_argument("--output", default="skillpulse-report.html", help="HTML report output path")
 
     return parser
@@ -278,8 +298,7 @@ def main(argv: List[str] = None) -> int:
     elif args.command == "test-mcp":
         return cmd_test_mcp(args)
     elif args.command == "report":
-        print(f"Report will be generated via Slice 4.")
-        return 0
+        return cmd_report(args)
     else:
         parser.print_help()
         return 0

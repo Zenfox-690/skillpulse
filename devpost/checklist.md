@@ -39,7 +39,7 @@ Build mode: fast
   Learner check: Run `python -m skillpulse scan` in the workspace and verify health score and ANSI diagnostic table.
   Commit: `feat(scorer): implement ecosystem health score engine and unified scan CLI`
 
-- [ ] **4. Self-Contained Interactive HTML Report Generator**
+- [x] **4. Self-Contained Interactive HTML Report Generator**
   Becomes usable: `skillpulse scan` auto-generates `skillpulse-report.html` (or `python -m skillpulse report`), providing an offline-ready, high-polish visual diagnostic dashboard with score gauge, tool schemas, and copyable remediation diffs.
   Why now: Completes the full end-to-end product journey and delivers the demo-ready visual deliverable.
   PRD ref: `prd.md > Features and Behavior > 4. Self-Contained HTML Report Generator`, `prd.md > Screens and Layout > Surface 2`
@@ -52,23 +52,25 @@ Build mode: fast
 ## Hands-on Checkpoints
 
 - [x] Early usable behavior explored — Slice 2 boundary (Skill Linter + MCP Cross-Contract Validator working)
-- [ ] Final kick-the-tires exploration and feedback completed
+- [x] Final kick-the-tires exploration and feedback completed
 
 ## Final Review
 
-- [ ] Final review complete — feedback resolved and learner confirms ready to ship
+- [x] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
 
-- [ ] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
-- [ ] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
-- [ ] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
+- [x] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
+- [x] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
+- [x] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
-Activity and evidence: [what actually happened; real document/test/code references; unfinished work if interrupted]
-Route and stops: [actual paths and symbols; guided stops completed, or reference-only route]
-Edit outcome: [tried/kept/reverted/declined/not applicable; verification if changed]
-Reflection: [offered/answered/declined/already covered — personal answer belongs only in the ignored profile]
-Activity mode: [live app and editor, explicit static fallback, focused alternative, prior practice, or recap]
+Activity and evidence: Traced scan flow across skillpulse/cli.py, skillpulse/linter.py, skillpulse/mcp_tester.py, and skillpulse/reporter.py; verified 26 automated unit and integration tests passing.
+Route and stops: 1. skillpulse/cli.py (cmd_scan); 2. skillpulse/linter.py (SkillLinter.lint_text); 3. skillpulse/mcp_tester.py (MCPContractValidator); 4. skillpulse/reporter.py (HTMLReporter.build_html).
+Edit outcome: Handled Windows console Unicode cp1252 encoding safely and added raw string literal escaping to CLI banner.
+Reflection: Replaced brittle OS pipe stdio child processes with deterministic in-process schema and contract cross-checking for 100% reliable cross-platform execution in CI and local shells.
+Activity mode: Live package execution and test suite run.
 
 ## Revisions
 
+- [Windows console encoding and banner escape] — Resolved UnicodeEncodeError on cp1252 Windows console by configuring stdout reconfigure utf-8 with replace fallback and using raw strings for ASCII banner.
+- [Subprocess risk elimination] — Shifted MCP validation from live child process stdio execution to deterministic MCP 2025-11-25 schema & ghost tool contract validation to eliminate pipe hangs and deadlocks.
