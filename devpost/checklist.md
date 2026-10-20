@@ -19,7 +19,7 @@ Build mode: fast
   Learner check: Run `python -m skillpulse lint-skills .agents/skills` and see all 6 skills detected and linted with token load indicators.
   Commit: `feat(linter): implement agent skill static linter and token estimator`
 
-- [ ] **2. MCP 2025-11-25 Contract & Schema Validator**
+- [x] **2. MCP 2025-11-25 Contract & Schema Validator**
   Becomes usable: `python -m skillpulse test-mcp <path>` validates MCP tool declarations against `2025-11-25` schema rules (`MCP001`, `MCP002`), cross-checks referenced tools in `SKILL.md` to catch Ghost Tools (`MCP003`), and detects orphaned MCP tools (`MCP004`).
   Why now: Brings in the other half of the dual-ecosystem kernel, proving cross-contract validation between prompt skills and MCP schemas in sub-millisecond execution.
   PRD ref: `prd.md > Features and Behavior > 2. MCP 2025-11-25 Contract & Schema Validator`
@@ -51,7 +51,7 @@ Build mode: fast
 
 ## Hands-on Checkpoints
 
-- [ ] Early usable behavior explored — Slice 2 boundary (Skill Linter + MCP Cross-Contract Validator working)
+- [x] Early usable behavior explored — Slice 2 boundary (Skill Linter + MCP Cross-Contract Validator working)
 - [ ] Final kick-the-tires exploration and feedback completed
 
 ## Final Review

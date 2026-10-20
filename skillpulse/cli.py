@@ -5,10 +5,11 @@ Command-line interface and terminal renderer for skillpulse.
 import argparse
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from skillpulse.linter import SkillScanner, SkillLinter
-from skillpulse.models import SkillReport, DiagnosticIssue
+from skillpulse.mcp_tester import MCPConfigDiscovery, MCPContractValidator
+from skillpulse.models import SkillReport, MCPReport, DiagnosticIssue
 
 # Ensure UTF-8 output on Windows consoles if supported
 if hasattr(sys.stdout, "reconfigure"):
@@ -92,6 +93,55 @@ def render_skill_reports(reports: List[SkillReport]) -> int:
     return total_errors
 
 
+def render_mcp_report(report: MCPReport) -> int:
+    """Renders MCP diagnostic report to stdout and returns total error count."""
+    print(f"{BOLD}=== Model Context Protocol (MCP 2025-11-25) Validation ==={RESET}\n")
+    print(f"  {GRAY}Source: {report.source_file}{RESET}")
+    print(f"  {GRAY}Protocol Standard: {report.protocol_version}{RESET}")
+    print(f"  {BOLD}Declared Tools ({len(report.tools)}):{RESET}")
+
+    for tool in report.tools:
+        props = list(tool.input_schema.get("properties", {}).keys())
+        params_str = f"({', '.join(props)})" if props else "(no params)"
+        print(f"    {CYAN}* {tool.name}{RESET} {GRAY}{params_str}{RESET}")
+
+    if not report.tools and not report.issues:
+        print(f"    {YELLOW}No tools declared in configuration.{RESET}")
+
+    print()
+
+    if report.ghost_tools:
+        print(f"  {RED}{BOLD}Ghost Tools Detected ({len(report.ghost_tools)}):{RESET}")
+        for ghost in report.ghost_tools:
+            print(f"    {RED}! {ghost} (referenced in skills, but missing in MCP tools){RESET}")
+        print()
+
+    if report.orphan_tools:
+        print(f"  {YELLOW}{BOLD}Orphaned / Undocumented Tools ({len(report.orphan_tools)}):{RESET}")
+        for orphan in report.orphan_tools:
+            print(f"    {YELLOW}? {orphan} (declared in MCP, never referenced in skills){RESET}")
+        print()
+
+    total_errors = 0
+    total_warnings = 0
+    if report.issues:
+        print(f"  {BOLD}Diagnostics:{RESET}")
+        for issue in report.issues:
+            print(format_issue(issue), end="")
+            if issue.severity == "ERROR":
+                total_errors += 1
+            elif issue.severity == "WARNING":
+                total_warnings += 1
+        print()
+    else:
+        print(f"  {GREEN}All MCP schema rules passed.{RESET}\n")
+
+    print(f"  Summary: {BOLD}{len(report.tools)}{RESET} tools validated, "
+          f"{RED}{total_errors} errors{RESET}, {YELLOW}{total_warnings} warnings{RESET}.\n")
+
+    return total_errors
+
+
 def cmd_lint_skills(args: argparse.Namespace) -> int:
     """Executes skill linter only."""
     print_banner()
@@ -99,6 +149,28 @@ def cmd_lint_skills(args: argparse.Namespace) -> int:
     skill_files = SkillScanner.find_skills(target_path)
     reports = [SkillLinter.lint_file(p) for p in skill_files]
     errors = render_skill_reports(reports)
+    return 1 if errors > 0 else 0
+
+
+def cmd_test_mcp(args: argparse.Namespace) -> int:
+    """Executes MCP tool schema and contract validation."""
+    print_banner()
+    config_path = Path(args.config).resolve()
+
+    if not config_path.exists():
+        discovered = MCPConfigDiscovery.find_mcp_config(Path.cwd())
+        if discovered:
+            config_path = discovered
+        else:
+            print(f"{RED}Error: MCP config not found at '{args.config}' and none discovered in workspace.{RESET}")
+            return 1
+
+    # Also discover skills for cross-checking if in a repo
+    skill_files = SkillScanner.find_skills(Path.cwd())
+    scanned_skills = [SkillLinter.lint_file(p) for p in skill_files]
+
+    report = MCPContractValidator.validate_file(config_path, scanned_skills)
+    errors = render_mcp_report(report)
     return 1 if errors > 0 else 0
 
 
@@ -113,7 +185,7 @@ def create_parser() -> argparse.ArgumentParser:
     p_lint = subparsers.add_parser("lint-skills", help="Lint Agent Skills (SKILL.md)")
     p_lint.add_argument("path", nargs="?", default=".", help="Directory or file path to lint")
 
-    # test-mcp (placeholder in Slice 1, implemented in Slice 2)
+    # test-mcp
     p_mcp = subparsers.add_parser("test-mcp", help="Validate MCP tool schemas and contracts")
     p_mcp.add_argument("config", nargs="?", default="mcp_tools.json", help="Path to MCP tools JSON file")
 
@@ -143,8 +215,7 @@ def main(argv: List[str] = None) -> int:
     elif args.command == "lint-skills":
         return cmd_lint_skills(args)
     elif args.command == "test-mcp":
-        print("MCP validator will be executed via Slice 2.")
-        return 0
+        return cmd_test_mcp(args)
     else:
         parser.print_help()
         return 0
