@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>skillpulse — Technical Specification Companion</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(18, 24, 38, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #06b6d4;
+      --primary-glow: rgba(6, 182, 212, 0.25);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #152238 0%, var(--bg) 70%);
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      line-height: 1.6;
+      padding: 2.5rem 1.5rem;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    header { text-align: center; margin-bottom: 2.5rem; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 9999px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 30%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle { color: var(--text-muted); font-size: 1.15rem; max-width: 750px; margin: 0 auto 1rem; }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .card h2 {
+      font-size: 1.35rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #fff;
+    }
+
+    .card h2 svg { width: 24px; height: 24px; fill: var(--primary); }
+
+    .diagram-wrap {
+      background: #0b101b;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* Component List */
+    .component-card {
+      background: #111827;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .component-card:hover {
+      border-color: rgba(6, 182, 212, 0.4);
+    }
+
+    .comp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .comp-name { font-weight: 700; color: #fff; font-size: 1.05rem; }
+    .comp-file { font-family: var(--font-mono); font-size: 0.8rem; color: var(--primary); }
+
+    .comp-prd-ref {
+      font-size: 0.8rem;
+      color: var(--accent);
+      background: rgba(16, 185, 129, 0.1);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    pre.file-tree {
+      background: #0d131f;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 1.25rem;
+      color: #94a3b8;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--card-border);
+      padding-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Devpost Learn &middot; Phase 4-spec Companion</div>
+      <h1>skillpulse Technical Spec Companion</h1>
+      <p class="subtitle">Architecture Blueprint, Component Mapping &amp; Data Flow for Step 5 Build</p>
+      <div class="status-pill">&check; Technical Spec Status: Approved</div>
+    </header>
+
+    <!-- Architecture & Data Flow Diagram -->
+    <div class="card">
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+        Architecture &amp; Data Flow Blueprint
+      </h2>
+      <div class="diagram-wrap">
+        <svg width="980" height="220" viewBox="0 0 980 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- CLI Box -->
+          <rect x="20" y="70" width="160" height="80" rx="10" fill="#131e33" stroke="#06b6d4" stroke-width="2"/>
+          <text x="100" y="105" fill="#06b6d4" font-size="15" font-weight="bold" text-anchor="middle">CLI Interface</text>
+          <text x="100" y="125" fill="#9ca3af" font-size="12" text-anchor="middle">skillpulse/cli.py</text>
+
+          <!-- Split arrows -->
+          <path d="M180 110 L250 60" stroke="#06b6d4" stroke-width="2"/>
+          <path d="M180 110 L250 160" stroke="#06b6d4" stroke-width="2"/>
+
+          <!-- Skill Linter Box -->
+          <rect x="250" y="20" width="230" height="80" rx="10" fill="#15263d" stroke="#10b981" stroke-width="2"/>
+          <text x="365" y="52" fill="#10b981" font-size="14" font-weight="bold" text-anchor="middle">SkillScanner &amp; Linter</text>
+          <text x="365" y="72" fill="#cbd5e1" font-size="11" text-anchor="middle">YAML Parser &bull; Rules SKILL001-005</text>
+          <text x="365" y="88" fill="#9ca3af" font-size="10" text-anchor="middle">Token Load Estimator (~1.3x words)</text>
+
+          <!-- MCP Harness Box -->
+          <rect x="250" y="120" width="230" height="80" rx="10" fill="#15263d" stroke="#10b981" stroke-width="2"/>
+          <text x="365" y="152" fill="#10b981" font-size="14" font-weight="bold" text-anchor="middle">MCPClientHarness</text>
+          <text x="365" y="172" fill="#cbd5e1" font-size="11" text-anchor="middle">JSON-RPC 2.0 stdio Subprocess</text>
+          <text x="365" y="188" fill="#9ca3af" font-size="10" text-anchor="middle">MCP 2025-11-25 &bull; 3s Timeout Guard</text>
+
+          <!-- Merge arrows -->
+          <path d="M480 60 L560 110" stroke="#10b981" stroke-width="2"/>
+          <path d="M480 160 L560 110" stroke="#10b981" stroke-width="2"/>
+
+          <!-- Health Scorer -->
+          <rect x="560" y="70" width="180" height="80" rx="10" fill="#1f2335" stroke="#f59e0b" stroke-width="2"/>
+          <text x="650" y="105" fill="#f59e0b" font-size="14" font-weight="bold" text-anchor="middle">HealthScorer</text>
+          <text x="650" y="125" fill="#cbd5e1" font-size="11" text-anchor="middle">Deterministic Formula (0-100)</text>
+
+          <!-- Arrow to outputs -->
+          <path d="M740 110 L810 110" stroke="#f59e0b" stroke-width="2"/>
+
+          <!-- HTML Reporter Box -->
+          <rect x="810" y="70" width="150" height="80" rx="10" fill="#1f1a35" stroke="#a855f7" stroke-width="2"/>
+          <text x="885" y="102" fill="#a855f7" font-size="14" font-weight="bold" text-anchor="middle">HTMLReporter</text>
+          <text x="885" y="122" fill="#cbd5e1" font-size="11" text-anchor="middle">report.html (Self-Contained)</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Component Mapping & Planned File Tree -->
+    <div class="grid-2">
+      <!-- Components -->
+      <div class="card">
+        <h2>
+          <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+          Component &amp; PRD Mapping
+        </h2>
+
+        <div class="component-card">
+          <div class="comp-header">
+            <span class="comp-name">SkillPulseCLI</span>
+            <span class="comp-file">skillpulse/cli.py</span>
+          </div>
+          <div class="comp-prd-ref">Implements prd.md &gt; Unified CLI Interface</div>
+          <p style="font-size: 0.9rem; color: #cbd5e1;">Handles user commands (<code>scan</code>, <code>lint-skills</code>, <code>test-mcp</code>, <code>report</code>), terminal ANSI color styling, and POSIX exit codes.</p>
+        </div>
+
+        <div class="component-card">
+          <div class="comp-header">
+            <span class="comp-name">SkillScanner &amp; Linter</span>
+            <span class="comp-file">skillpulse/linter.py</span>
+          </div>
+          <div class="comp-prd-ref">Implements prd.md &gt; Agent Skill Static Linter</div>
+          <p style="font-size: 0.9rem; color: #cbd5e1;">Walks directories, isolates YAML frontmatter, validates schema rules SKILL001-SKILL005, and estimates token consumption.</p>
+        </div>
+
+        <div class="component-card">
+          <div class="comp-header">
+            <span class="comp-name">MCPClientHarness</span>
+            <span class="comp-file">skillpulse/mcp_tester.py</span>
+          </div>
+          <div class="comp-prd-ref">Implements prd.md &gt; MCP 2025-11-25 Protocol Test</div>
+          <p style="font-size: 0.9rem; color: #cbd5e1;">Manages subprocess stdio streams, JSON-RPC 2.0 handshake, 3.0s timeout guard, and tool inputSchema verification.</p>
+        </div>
+
+        <div class="component-card">
+          <div class="comp-header">
+            <span class="comp-name">HTMLReporter</span>
+            <span class="comp-file">skillpulse/reporter.py</span>
+          </div>
+          <div class="comp-prd-ref">Implements prd.md &gt; Self-Contained HTML Report</div>
+          <p style="font-size: 0.9rem; color: #cbd5e1;">Generates self-contained <code>skillpulse-report.html</code> with embedded CSS and zero external JavaScript library dependencies.</p>
+        </div>
+      </div>
+
+      <!-- File Structure -->
+      <div class="card">
+        <h2>
+          <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+          Planned File Structure
+        </h2>
+        <pre class="file-tree">skillpulse/
+├── devpost/                  # Planning workspace
+│   ├── learner-profile.md
+│   ├── scope.md / scope.html
+│   ├── prd.md / prd.html
+│   └── spec.md / spec.html
+├── skillpulse/               # Main Python package
+│   ├── __init__.py
+│   ├── __main__.py           # python -m skillpulse
+│   ├── cli.py                # Command-line runner
+│   ├── models.py             # Dataclass schemas
+│   ├── linter.py             # SKILL.md linter
+│   ├── mcp_tester.py         # MCP stdio test harness
+│   ├── scorer.py             # Health score engine
+│   └── reporter.py           # HTML report compiler
+├── tests/                    # Pytest test suite
+│   ├── test_linter.py
+│   ├── test_mcp_tester.py
+│   ├── test_scorer.py
+│   └── test_cli.py
+├── examples/                 # Sample skills &amp; server
+│   ├── valid_skill/SKILL.md
+│   ├── invalid_skill/SKILL.md
+│   └── sample_mcp_server.py
+├── .gitignore
+├── LICENSE                   # MIT License
+├── pyproject.toml
+└── README.md</pre>
+      </div>
+    </div>
+
+    <footer>
+      <p>Artifact generated for Devpost Learn &middot; Build With AI: Basics &amp; Amazon Developer Hackathon</p>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>skillpulse — Product Requirements Document (PRD) Companion</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(18, 24, 38, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #06b6d4;
+      --primary-glow: rgba(6, 182, 212, 0.25);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #152238 0%, var(--bg) 70%);
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      line-height: 1.6;
+      padding: 2.5rem 1.5rem;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 1080px; margin: 0 auto; }
+
+    header { text-align: center; margin-bottom: 2.5rem; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 9999px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 30%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle { color: var(--text-muted); font-size: 1.15rem; max-width: 750px; margin: 0 auto 1rem; }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .card h2 {
+      font-size: 1.35rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #fff;
+    }
+
+    .card h2 svg { width: 24px; height: 24px; fill: var(--primary); }
+
+    /* Journey Interactive Stepper */
+    .journey-stepper {
+      display: flex;
+      gap: 0.75rem;
+      overflow-x: auto;
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .step-btn {
+      flex: 1;
+      min-width: 140px;
+      background: #111827;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 0.85rem 0.75rem;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+
+    .step-btn.active {
+      background: #1e293b;
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .step-num {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+
+    .step-title { font-size: 0.9rem; font-weight: 600; line-height: 1.3; }
+
+    .step-detail-box {
+      background: #0d131f;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    /* Diagram */
+    .diagram-wrap {
+      background: #0b101b;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Tabs */
+    .tabs-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--primary);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Rules Table */
+    table.rules-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    table.rules-table th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      background: #111827;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    table.rules-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .code-badge {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 0.2rem 0.5rem;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      color: #38bdf8;
+    }
+
+    .calc-box {
+      background: #131c2e;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .calc-slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 0.4rem;
+      color: var(--text-muted);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+    }
+
+    .score-display {
+      text-align: center;
+      padding: 1.25rem;
+      background: #090d16;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+    }
+
+    .score-number {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .score-grade { font-size: 1.1rem; font-weight: 700; color: #fff; }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--card-border);
+      padding-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Devpost Learn &middot; Phase 3-prd Companion</div>
+      <h1>skillpulse PRD Companion</h1>
+      <p class="subtitle">Complete Product Definition for the Agent Skills &amp; MCP (2025-11-25) Test Harness &amp; Linter</p>
+      <div class="status-pill">&check; PRD Status: Approved</div>
+    </header>
+
+    <!-- Core Journey SVG Diagram -->
+    <div class="card">
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z"/></svg>
+        The Core Journey Map
+      </h2>
+      <div class="diagram-wrap">
+        <svg width="960" height="150" viewBox="0 0 960 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Step 1 -->
+          <circle cx="60" cy="70" r="28" fill="#131e33" stroke="#06b6d4" stroke-width="2"/>
+          <text x="60" y="76" fill="#06b6d4" font-size="16" font-weight="bold" text-anchor="middle">1</text>
+          <text x="60" y="120" fill="#cbd5e1" font-size="12" font-weight="600" text-anchor="middle">CLI Invoke</text>
+
+          <line x1="90" y1="70" x2="190" y2="70" stroke="#06b6d4" stroke-width="2" stroke-dasharray="4 4"/>
+
+          <!-- Step 2 -->
+          <circle cx="220" cy="70" r="28" fill="#131e33" stroke="#06b6d4" stroke-width="2"/>
+          <text x="220" y="76" fill="#06b6d4" font-size="16" font-weight="bold" text-anchor="middle">2</text>
+          <text x="220" y="120" fill="#cbd5e1" font-size="12" font-weight="600" text-anchor="middle">Discovery</text>
+
+          <line x1="250" y1="70" x2="350" y2="70" stroke="#06b6d4" stroke-width="2"/>
+
+          <!-- Step 3 -->
+          <circle cx="380" cy="70" r="28" fill="#131e33" stroke="#10b981" stroke-width="2"/>
+          <text x="380" y="76" fill="#10b981" font-size="16" font-weight="bold" text-anchor="middle">3</text>
+          <text x="380" y="120" fill="#cbd5e1" font-size="12" font-weight="600" text-anchor="middle">Skill Linter</text>
+
+          <line x1="410" y1="70" x2="510" y2="70" stroke="#10b981" stroke-width="2"/>
+
+          <!-- Step 4 -->
+          <circle cx="540" cy="70" r="28" fill="#131e33" stroke="#10b981" stroke-width="2"/>
+          <text x="540" y="76" fill="#10b981" font-size="16" font-weight="bold" text-anchor="middle">4</text>
+          <text x="540" y="120" fill="#cbd5e1" font-size="12" font-weight="600" text-anchor="middle">MCP Handshake</text>
+
+          <line x1="570" y1="70" x2="670" y2="70" stroke="#f59e0b" stroke-width="2"/>
+
+          <!-- Step 5 -->
+          <circle cx="700" cy="70" r="28" fill="#131e33" stroke="#f59e0b" stroke-width="2"/>
+          <text x="700" y="76" fill="#f59e0b" font-size="16" font-weight="bold" text-anchor="middle">5</text>
+          <text x="700" y="120" fill="#cbd5e1" font-size="12" font-weight="600" text-anchor="middle">Scoring</text>
+
+          <line x1="730" y1="70" x2="830" y2="70" stroke="#a855f7" stroke-width="2"/>
+
+          <!-- Step 6 -->
+          <circle cx="860" cy="70" r="28" fill="#131e33" stroke="#a855f7" stroke-width="2"/>
+          <text x="860" y="76" fill="#a855f7" font-size="16" font-weight="bold" text-anchor="middle">6</text>
+          <text x="860" y="120" fill="#cbd5e1" font-size="12" font-weight="600" text-anchor="middle">HTML Report</text>
+        </svg>
+      </div>
+
+      <!-- Step Details Stepper -->
+      <div class="journey-stepper">
+        <button class="step-btn active" onclick="selectStep(1)">
+          <div class="step-num">Step 1</div>
+          <div class="step-title">CLI Invocation</div>
+        </button>
+        <button class="step-btn" onclick="selectStep(2)">
+          <div class="step-num">Step 2</div>
+          <div class="step-title">Discovery</div>
+        </button>
+        <button class="step-btn" onclick="selectStep(3)">
+          <div class="step-num">Step 3</div>
+          <div class="step-title">Skill Linting</div>
+        </button>
+        <button class="step-btn" onclick="selectStep(4)">
+          <div class="step-num">Step 4</div>
+          <div class="step-title">MCP Protocol</div>
+        </button>
+        <button class="step-btn" onclick="selectStep(5)">
+          <div class="step-num">Step 5</div>
+          <div class="step-title">Scoring</div>
+        </button>
+        <button class="step-btn" onclick="selectStep(6)">
+          <div class="step-num">Step 6</div>
+          <div class="step-title">HTML Report</div>
+        </button>
+      </div>
+
+      <div id="step-detail" class="step-detail-box">
+        <h3 id="step-box-title" style="color: var(--primary); margin-bottom: 0.5rem;">Step 1: CLI Invocation</h3>
+        <p id="step-box-desc" style="color: #cbd5e1;">Developer executes <code>skillpulse scan</code> in terminal. SkillPulse parses CLI arguments, locates configurations, and prepares asynchronous scanning workers.</p>
+      </div>
+    </div>
+
+    <!-- Feature Specifications & Rules -->
+    <div class="card">
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        Feature Specifications &amp; Rules
+      </h2>
+
+      <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab('tab-skills')">Agent Skills Rules</button>
+        <button class="tab-btn" onclick="switchTab('tab-mcp')">MCP Protocol Rules</button>
+        <button class="tab-btn" onclick="switchTab('tab-calc')">Health Score Formula</button>
+        <button class="tab-btn" onclick="switchTab('tab-states')">States &amp; Edge Cases</button>
+      </div>
+
+      <!-- Skills Tab -->
+      <div id="tab-skills" class="tab-content active">
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">The static linter inspects <code>SKILL.md</code> files against the Agent Skills specification standard:</p>
+        <table class="rules-table">
+          <thead>
+            <tr><th>Rule ID</th><th>Requirement</th><th>Severity</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="code-badge">SKILL001</span></td>
+              <td>YAML Frontmatter</td>
+              <td><span style="color: var(--danger); font-weight: bold;">Error</span></td>
+              <td>Must begin and end with <code>---</code> delimiters and contain valid YAML syntax.</td>
+            </tr>
+            <tr>
+              <td><span class="code-badge">SKILL002</span></td>
+              <td>Skill Name</td>
+              <td><span style="color: var(--danger); font-weight: bold;">Error</span></td>
+              <td>Attribute <code>name</code> required: 1-64 chars, lowercase alphanumeric + hyphens.</td>
+            </tr>
+            <tr>
+              <td><span class="code-badge">SKILL003</span></td>
+              <td>Description</td>
+              <td><span style="color: var(--danger); font-weight: bold;">Error</span></td>
+              <td>Attribute <code>description</code> required: clear action-oriented intent.</td>
+            </tr>
+            <tr>
+              <td><span class="code-badge">SKILL004</span></td>
+              <td>Trigger Guidance</td>
+              <td><span style="color: var(--warning); font-weight: bold;">Warning</span></td>
+              <td>Recommends explicit trigger phrases or activation conditions.</td>
+            </tr>
+            <tr>
+              <td><span class="code-badge">SKILL005</span></td>
+              <td>Token Budget</td>
+              <td><span style="color: var(--warning); font-weight: bold;">Warning</span></td>
+              <td>Flags skills exceeding 2,500 estimated tokens (~1.3 tokens/word) to prevent prompt bloat.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- MCP Tab -->
+      <div id="tab-mcp" class="tab-content">
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">The dynamic test harness evaluates Model Context Protocol servers against the <code>2025-11-25</code> specification:</p>
+        <table class="rules-table">
+          <thead>
+            <tr><th>Rule ID</th><th>Protocol Step</th><th>Severity</th><th>Validation Target</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="code-badge">MCP001</span></td>
+              <td>initialize handshake</td>
+              <td><span style="color: var(--danger); font-weight: bold;">Error</span></td>
+              <td>JSON-RPC 2.0 handshake returns protocol version <code>2025-11-25</code> and server info.</td>
+            </tr>
+            <tr>
+              <td><span class="code-badge">MCP002</span></td>
+              <td>ping heartbeat</td>
+              <td><span style="color: var(--danger); font-weight: bold;">Error</span></td>
+              <td>Responds to JSON-RPC <code>ping</code> request within 3.0s timeout.</td>
+            </tr>
+            <tr>
+              <td><span class="code-badge">MCP003</span></td>
+              <td>tools/list query</td>
+              <td><span style="color: var(--danger); font-weight: bold;">Error</span></td>
+              <td>Returns valid array of callable tool signatures.</td>
+            </tr>
+            <tr>
+              <td><span class="code-badge">MCP004</span></td>
+              <td>inputSchema validation</td>
+              <td><span style="color: var(--warning); font-weight: bold;">Warning</span></td>
+              <td>Validates each tool's <code>inputSchema</code> adheres to standard JSON Schema Draft 7/2020-12.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Scoring Calculator Tab -->
+      <div id="tab-calc" class="tab-content">
+        <p style="color: var(--text-muted);">Interactive preview of the deterministic Ecosystem Health Score formula:</p>
+        <div class="calc-box">
+          <div class="calc-grid">
+            <div>
+              <div class="calc-slider-label"><span>Critical Errors (-25 pts)</span><span id="lbl-err">0</span></div>
+              <input type="range" id="input-err" min="0" max="4" value="0" oninput="updateScore()">
+            </div>
+            <div>
+              <div class="calc-slider-label"><span>Warnings (-10 pts)</span><span id="lbl-warn">1</span></div>
+              <input type="range" id="input-warn" min="0" max="6" value="1" oninput="updateScore()">
+            </div>
+            <div>
+              <div class="calc-slider-label"><span>Info / Tips (-2 pts)</span><span id="lbl-info">2</span></div>
+              <input type="range" id="input-info" min="0" max="10" value="2" oninput="updateScore()">
+            </div>
+          </div>
+
+          <div class="score-display">
+            <div class="score-number" id="calc-score">86%</div>
+            <div class="score-grade" id="calc-grade">Grade B &middot; Good Health</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- States Tab -->
+      <div id="tab-states" class="tab-content">
+        <ul style="list-style: none; margin-top: 1rem;">
+          <li style="margin-bottom: 1rem; padding: 1rem; background: #0e1626; border-radius: 8px;">
+            <strong style="color: var(--accent);">&check; Perfect Pass State:</strong> All skills valid, all MCP tools verified, zero errors. Score: 100/A. Exit code: 0.
+          </li>
+          <li style="margin-bottom: 1rem; padding: 1rem; background: #0e1626; border-radius: 8px;">
+            <strong style="color: var(--warning);">&#9888; Warning-Only State:</strong> Valid schemas, but oversized prompt tokens or missing triggers. Exit code: 0.
+          </li>
+          <li style="margin-bottom: 1rem; padding: 1rem; background: #0e1626; border-radius: 8px;">
+            <strong style="color: var(--danger);">&times; Critical Failure State:</strong> Broken YAML frontmatter or MCP handshake failure. Exit code: 1.
+          </li>
+          <li style="padding: 1rem; background: #0e1626; border-radius: 8px;">
+            <strong style="color: #cbd5e1;">&#9201; Timeout Safety State:</strong> MCP server fails to respond within 3.0s. Subprocess is terminated via <code>SIGKILL</code>; CLI remains responsive.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <footer>
+      <p>Artifact generated for Devpost Learn &middot; Build With AI: Basics &amp; Amazon Developer Hackathon</p>
+    </footer>
+  </div>
+
+  <script>
+    const stepData = [
+      { num: 1, title: "Step 1: CLI Invocation", desc: "Developer executes skillpulse scan in terminal. SkillPulse parses CLI arguments, detects workspace boundaries, and initializes linter runners." },
+      { num: 2, title: "Step 2: Skill & MCP Discovery", desc: "Locates all SKILL.md manifests in .agents/skills/ or custom paths, and parses client config files (mcp_config.json, claude_desktop_config.json)." },
+      { num: 3, title: "Step 3: Skill Static Linting", desc: "Parses YAML frontmatter, validates name/description keys, checks trigger phrases, and calculates token consumption estimates." },
+      { num: 4, title: "Step 4: MCP Protocol Handshake", desc: "Spawns stdio subprocesses with a 3.0s timeout, transmits JSON-RPC initialize request (MCP 2025-11-25), verifies capabilities, and calls tools/list." },
+      { num: 5, title: "Step 5: Diagnostic Scoring", desc: "Applies the deterministic penalty scoring formula to compute the 0–100 Ecosystem Health Score and assigns a letter grade (A/B/C/F)." },
+      { num: 6, title: "Step 6: Visual HTML Report", desc: "Compiles all findings, tool parameters, and 1-click remediation diffs into a self-contained, interactive skillpulse-report.html dashboard." }
+    ];
+
+    function selectStep(stepNum) {
+      document.querySelectorAll('.step-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === stepNum - 1);
+      });
+      const data = stepData[stepNum - 1];
+      document.getElementById('step-box-title').innerText = data.title;
+      document.getElementById('step-box-desc').innerText = data.desc;
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function updateScore() {
+      const err = parseInt(document.getElementById('input-err').value);
+      const warn = parseInt(document.getElementById('input-warn').value);
+      const info = parseInt(document.getElementById('input-info').value);
+
+      document.getElementById('lbl-err').innerText = err;
+      document.getElementById('lbl-warn').innerText = warn;
+      document.getElementById('lbl-info').innerText = info;
+
+      const score = Math.max(0, 100 - (err * 25) - (warn * 10) - (info * 2));
+      const scoreEl = document.getElementById('calc-score');
+      const gradeEl = document.getElementById('calc-grade');
+      scoreEl.innerText = score + '%';
+
+      if (score >= 90) {
+        scoreEl.style.color = '#10b981';
+        gradeEl.innerText = 'Grade A · Excellent Health';
+      } else if (score >= 80) {
+        scoreEl.style.color = '#38bdf8';
+        gradeEl.innerText = 'Grade B · Good Health';
+      } else if (score >= 70) {
+        scoreEl.style.color = '#f59e0b';
+        gradeEl.innerText = 'Grade C · Needs Improvement';
+      } else {
+        scoreEl.style.color = '#ef4444';
+        gradeEl.innerText = 'Grade F · Critical Failures';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>skillpulse — Project Scope Companion</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(18, 24, 38, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #06b6d4;
+      --primary-glow: rgba(6, 182, 212, 0.25);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #152238 0%, var(--bg) 70%);
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      line-height: 1.6;
+      padding: 2rem 1.5rem;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 9999px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.75rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .card:hover {
+      border-color: rgba(6, 182, 212, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #fff;
+    }
+
+    .card h2 svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--primary);
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* SVG Diagram Container */
+    .diagram-container {
+      background: #0d131f;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+    }
+
+    /* Tabs */
+    .tabs-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--primary);
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    ul.feature-list {
+      list-style: none;
+    }
+
+    ul.feature-list li {
+      padding: 0.6rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    ul.feature-list li:last-child {
+      border-bottom: none;
+    }
+
+    .icon-check { color: var(--accent); }
+    .icon-clock { color: var(--warning); }
+    .icon-cut { color: var(--danger); }
+
+    .status-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .status-approved {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--card-border);
+      padding-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Devpost Learn &middot; Phase 2-scope Companion</div>
+      <h1>skillpulse</h1>
+      <p class="subtitle">Open-source Linter, Test Harness, and Diagnostics Suite for AI Agent Skills &amp; MCP (2025-11-25) Servers</p>
+      <div style="margin-top: 1rem;">
+        <span class="status-tag status-approved">&check; Scope Status: Approved</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Unique Kernel -->
+      <div class="card full-width">
+        <h2>
+          <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z"/></svg>
+          The Unique Kernel
+        </h2>
+        <p style="font-size: 1.1rem; color: #e5e7eb;">
+          <strong>Unified Dual-Ecosystem Validation:</strong> Linting both human-authored Agent Skills (<code>SKILL.md</code>) and protocol-driven Model Context Protocol (<code>MCP 2025-11-25</code>) servers in a single high-speed CLI run (<500ms), outputting actionable diagnostics, token cost estimation, and a self-contained visual dashboard.
+        </p>
+      </div>
+
+      <!-- Core Loop Diagram -->
+      <div class="card full-width">
+        <h2>
+          <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+          The Core Loop Architecture
+        </h2>
+        <div class="diagram-container">
+          <svg width="840" height="180" viewBox="0 0 840 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Node 1: Input -->
+            <rect x="20" y="50" width="160" height="80" rx="10" fill="#131e33" stroke="#06b6d4" stroke-width="2"/>
+            <text x="100" y="85" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Agent Skills &amp; MCP</text>
+            <text x="100" y="105" fill="#9ca3af" font-size="12" text-anchor="middle">.agents/skills/ &amp; configs</text>
+
+            <!-- Arrow 1 -->
+            <path d="M180 90 L230 90" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+            <!-- Node 2: SkillPulse Engine -->
+            <rect x="230" y="35" width="200" height="110" rx="10" fill="#192a47" stroke="#10b981" stroke-width="2"/>
+            <text x="330" y="70" fill="#10b981" font-size="16" font-weight="bold" text-anchor="middle">skillpulse scan</text>
+            <text x="330" y="95" fill="#cbd5e1" font-size="12" text-anchor="middle">&bull; YAML Frontmatter Parser</text>
+            <text x="330" y="115" fill="#cbd5e1" font-size="12" text-anchor="middle">&bull; MCP 2025-11-25 Test Suite</text>
+            <text x="330" y="133" fill="#cbd5e1" font-size="12" text-anchor="middle">&bull; Token Load Estimator</text>
+
+            <!-- Arrow 2 -->
+            <path d="M430 90 L480 90" stroke="#10b981" stroke-width="2"/>
+
+            <!-- Node 3: Diagnostics & Scoring -->
+            <rect x="480" y="50" width="160" height="80" rx="10" fill="#131e33" stroke="#f59e0b" stroke-width="2"/>
+            <text x="560" y="85" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Health Score</text>
+            <text x="560" y="105" fill="#f59e0b" font-size="12" font-weight="bold" text-anchor="middle">0 &ndash; 100% Metric</text>
+
+            <!-- Arrow 3 -->
+            <path d="M640 90 L680 90" stroke="#f59e0b" stroke-width="2"/>
+
+            <!-- Node 4: Outputs -->
+            <rect x="680" y="50" width="140" height="80" rx="10" fill="#131e33" stroke="#a855f7" stroke-width="2"/>
+            <text x="750" y="82" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">CLI &amp; HTML</text>
+            <text x="750" y="102" fill="#a855f7" font-size="11" text-anchor="middle">Visual Report</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Boundaries & Scope Explorer -->
+      <div class="card full-width">
+        <h2>
+          <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          Proof of Concept Boundary Explorer
+        </h2>
+        
+        <div class="tabs-nav">
+          <button class="tab-btn active" onclick="showTab('tab-now')">In Scope (Now - PoC)</button>
+          <button class="tab-btn" onclick="showTab('tab-later')">Later Enhancements</button>
+          <button class="tab-btn" onclick="showTab('tab-cut')">Explicitly Cut</button>
+        </div>
+
+        <div id="tab-now" class="tab-pane active">
+          <ul class="feature-list">
+            <li>
+              <span class="icon-check">&check;</span>
+              <div>
+                <strong>SKILL.md Static Linter:</strong> Validates YAML frontmatter syntax, required <code>name</code> and <code>description</code>, trigger phrasing, and token budget estimation.
+              </div>
+            </li>
+            <li>
+              <span class="icon-check">&check;</span>
+              <div>
+                <strong>MCP Server Test Harness:</strong> Tests JSON-RPC stdio handshake, verifies <code>2025-11-25</code> protocol handshake, and schema-validates declared tools and inputs.
+              </div>
+            </li>
+            <li>
+              <span class="icon-check">&check;</span>
+              <div>
+                <strong>Interactive Standalone HTML Reporter:</strong> Generates self-contained <code>skillpulse-report.html</code> with visual charts, error badges, and 1-click remediation guides.
+              </div>
+            </li>
+            <li>
+              <span class="icon-check">&check;</span>
+              <div>
+                <strong>Multi-Target CLI Commands:</strong> <code>skillpulse scan</code>, <code>skillpulse lint-skills</code>, <code>skillpulse test-mcp</code>, and <code>skillpulse report</code>.
+              </div>
+            </li>
+            <li>
+              <span class="icon-check">&check;</span>
+              <div>
+                <strong>Automated Pytest Suite:</strong> Comprehensive unit testing for fast, reproducible CI execution.
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div id="tab-later" class="tab-pane">
+          <ul class="feature-list">
+            <li>
+              <span class="icon-clock">&bull;</span>
+              <div>
+                <strong>GitHub Actions CI Workflow:</strong> Standalone action to fail PRs when skills or MCP tools break contract.
+              </div>
+            </li>
+            <li>
+              <span class="icon-clock">&bull;</span>
+              <div>
+                <strong>SSE/HTTP Live Transport:</strong> Live network proxy inspection for remote streaming MCP servers.
+              </div>
+            </li>
+            <li>
+              <span class="icon-clock">&bull;</span>
+              <div>
+                <strong>1-Click Autofix CLI:</strong> Automated rewriting of missing frontmatter keys and formatting errors (<code>skillpulse fix</code>).
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div id="tab-cut" class="tab-pane">
+          <ul class="feature-list">
+            <li>
+              <span class="icon-cut">&times;</span>
+              <div>
+                <strong>Cloud Telemetry &amp; Database:</strong> Cut to keep the tool 100% offline, privacy-first, and zero-configuration.
+              </div>
+            </li>
+            <li>
+              <span class="icon-cut">&times;</span>
+              <div>
+                <strong>User Authentication:</strong> Cut as developer CLI tools run locally without login friction.
+              </div>
+            </li>
+            <li>
+              <span class="icon-cut">&times;</span>
+              <div>
+                <strong>Commercial Licensing:</strong> Cut to preserve strict MIT open-source status for dual-hackathon qualification.
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Artifact generated for Devpost Learn &middot; Build With AI: Basics &amp; Amazon Developer Hackathon</p>
+    </footer>
+  </div>
+
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+  </script>
+</body>
+</html>
