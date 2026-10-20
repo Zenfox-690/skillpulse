@@ -146,13 +146,31 @@ def render_mcp_report(report: MCPReport) -> int:
 
 def render_scan_summary(scan: ScanResult):
     """Renders final executive health score summary block."""
-    color = GREEN if scan.health_score >= 90 else (CYAN if scan.health_score >= 80 else (YELLOW if scan.health_score >= 70 else RED))
+    if scan.health_score >= 90:
+        color = GREEN
+    elif scan.health_score >= 80:
+        color = CYAN
+    elif scan.health_score >= 70:
+        color = YELLOW
+    elif scan.health_score >= 60:
+        color = YELLOW
+    else:
+        color = RED
+
+    formula_str = HealthScorer.format_formula(scan.total_errors, scan.total_warnings, scan.health_score, scan.grade)
 
     print(f"{BOLD}===================================================={RESET}")
     print(f"  {BOLD}Ecosystem Health Score:{RESET} {color}{BOLD}{scan.health_score}%{RESET} ({scan.grade})")
     print(f"  {GRAY}{HealthScorer.grade_description(scan.grade, scan.total_errors)}{RESET}")
+    print(f"  {GRAY}Score Formula: {formula_str}{RESET}")
     print(f"  {BOLD}Total Critical Errors:{RESET} {RED if scan.total_errors else GREEN}{scan.total_errors}{RESET}")
     print(f"  {BOLD}Total Warnings:{RESET} {YELLOW if scan.total_warnings else GREEN}{scan.total_warnings}{RESET}")
+    if scan.mcp_report:
+        ghost_count = len(scan.mcp_report.ghost_tools)
+        orphan_count = len(scan.mcp_report.orphan_tools)
+        ghost_color = RED if ghost_count else GREEN
+        orphan_color = YELLOW if orphan_count else GREEN
+        print(f"  {BOLD}Ghost Tools:{RESET} {ghost_color}{ghost_count}{RESET} | {BOLD}Orphan Tools:{RESET} {orphan_color}{orphan_count}{RESET}")
     print(f"{BOLD}===================================================={RESET}\n")
 
 
@@ -179,8 +197,14 @@ def cmd_test_mcp(args: argparse.Namespace) -> int:
             print(f"{RED}Error: MCP config not found at '{args.config}' and none discovered in workspace.{RESET}")
             return 1
 
-    skill_files = SkillScanner.find_skills(Path.cwd())
-    scanned_skills = [SkillLinter.lint_file(p) for p in skill_files]
+    scanned_skills = []
+    if getattr(args, "skills_dir", None):
+        skills_path = Path(args.skills_dir).resolve()
+        skill_files = SkillScanner.find_skills(skills_path)
+        scanned_skills = [SkillLinter.lint_file(p) for p in skill_files]
+    elif (config_path.parent / "skills").is_dir():
+        skill_files = SkillScanner.find_skills(config_path.parent / "skills")
+        scanned_skills = [SkillLinter.lint_file(p) for p in skill_files]
 
     report = MCPContractValidator.validate_file(config_path, scanned_skills)
     errors = render_mcp_report(report)
@@ -263,6 +287,7 @@ def create_parser() -> argparse.ArgumentParser:
     # test-mcp
     p_mcp = subparsers.add_parser("test-mcp", help="Validate MCP tool schemas and contracts")
     p_mcp.add_argument("config", nargs="?", default="mcp_tools.json", help="Path to MCP tools JSON file")
+    p_mcp.add_argument("--skills-dir", default=None, help="Specific skills directory to cross-check contracts")
 
     # scan
     p_scan = subparsers.add_parser("scan", help="Run full scan (Skills + MCP)")

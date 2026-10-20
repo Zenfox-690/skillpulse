@@ -29,7 +29,19 @@ class HTMLReporter:
         total_errors = scan.total_errors
         total_warnings = scan.total_warnings
 
-        score_color = "#10b981" if score >= 90 else ("#06b6d4" if score >= 80 else ("#f59e0b" if score >= 70 else "#ef4444"))
+        from skillpulse.scorer import HealthScorer
+        formula_str = HealthScorer.format_formula(total_errors, total_warnings, score, grade)
+
+        if score >= 90:
+            score_color = "#10b981"
+        elif score >= 80:
+            score_color = "#06b6d4"
+        elif score >= 70:
+            score_color = "#f59e0b"
+        elif score >= 60:
+            score_color = "#f59e0b"
+        else:
+            score_color = "#ef4444"
 
         # Render Skills Cards
         skills_html = []
@@ -500,6 +512,7 @@ class HTMLReporter:
       <div class="kpi-card" style="border-top: 3px solid {score_color};">
         <div class="kpi-val" style="color: {score_color};">{score}%</div>
         <div class="kpi-label">Health Score &middot; Grade {grade}</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem; font-family: var(--font-mono);">{html.escape(formula_str)}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-val" style="color: #38bdf8;">{total_skills}</div>

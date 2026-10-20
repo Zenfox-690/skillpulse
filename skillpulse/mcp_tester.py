@@ -219,7 +219,7 @@ class MCPContractValidator:
                     orphan_tools.append(declared)
                     issues.append(DiagnosticIssue(
                         rule_id="MCP004",
-                        severity="INFO",
+                        severity="WARNING",
                         message=f"Orphan MCP tool: '{declared}' is declared in MCP tools but never referenced in any Agent Skill.",
                         suggestion=f"Document '{declared}' in an agent skill prompt so agents know when to invoke it."
                     ))

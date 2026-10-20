@@ -1,0 +1,51 @@
+{
+  "$schema": "https://spec.modelcontextprotocol.io/schema/2025-11-25/tools.json",
+  "tools": [
+    {
+      "name": "search_hackathons",
+      "description": "Searches active hackathons by topic, platform, or deadline.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Keywords or category to filter by"
+          },
+          "platform": {
+            "type": "string",
+            "description": "Hosting platform, e.g., devpost"
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "audit_rules",
+      "description": "Audits project workspace against specific competition guidelines.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "rule_category": {
+            "type": "string",
+            "description": "Target rule set to verify"
+          }
+        },
+        "required": ["rule_category"]
+      }
+    },
+    {
+      "name": "generate_sprint_plan",
+      "description": "Generates structured sprint implementation steps based on approved scope.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sprint_goal": {
+            "type": "string",
+            "description": "Core proof-of-concept milestone"
+          }
+        },
+        "required": ["sprint_goal"]
+      }
+    }
+  ]
+}

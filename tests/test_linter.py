@@ -116,3 +116,59 @@ def test_scanner_finds_skills(tmp_path: Path):
 
     found = SkillScanner.find_skills(tmp_path)
     assert len(found) == 2
+
+
+def test_broken_relative_markdown_link(tmp_path: Path):
+    skill_dir = tmp_path / "skill"
+    skill_dir.mkdir()
+    skill_file = skill_dir / "SKILL.md"
+
+    # Skill with a broken relative link and a valid external link
+    content = """---
+name: link-checker
+description: Checks links in markdown.
+---
+# Link Checker
+Use when checking documentation.
+See [broken doc](docs/missing.md) and [web site](https://example.com) or [anchor](#link-checker).
+"""
+    skill_file.write_text(content, encoding="utf-8")
+    report = SkillLinter.lint_file(skill_file)
+
+    assert any(i.rule_id == "SKILL006" and "docs/missing.md" in i.message for i in report.issues)
+    assert not any("example.com" in i.message for i in report.issues)
+
+    # Now create the referenced file so the link is valid
+    (skill_dir / "docs").mkdir()
+    (skill_dir / "docs" / "missing.md").write_text("# Found!", encoding="utf-8")
+
+    report_fixed = SkillLinter.lint_file(skill_file)
+    assert not any(i.rule_id == "SKILL006" for i in report_fixed.issues)
+
+
+def test_tool_extraction_does_not_extract_sibling_skills_or_generic_backticks():
+    content = """---
+name: workflow-skill
+description: Coordinates workflow between steps.
+---
+# Workflow Skill
+Use when running the build pipeline.
+First run `1-start`, then `2-scope`, then `3-prd`, then `4-spec`, then `5-build`, and finally `6-ship`.
+Also refer to `some_variable` in python.
+
+## Required MCP Tools
+Inside this explicit tools section, we invoke `query_database` and `send_notification`.
+"""
+    report = SkillLinter.lint_text(content, "SKILL.md")
+    # Sibling skills and generic code words must NOT be extracted
+    assert "1-start" not in report.referenced_tools
+    assert "2-scope" not in report.referenced_tools
+    assert "3-prd" not in report.referenced_tools
+    assert "4-spec" not in report.referenced_tools
+    assert "5-build" not in report.referenced_tools
+    assert "6-ship" not in report.referenced_tools
+    assert "some_variable" not in report.referenced_tools
+
+    # Tools in ## Required MCP Tools heading MUST be extracted
+    assert "query_database" in report.referenced_tools
+    assert "send_notification" in report.referenced_tools

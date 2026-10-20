@@ -1,5 +1,6 @@
 """
 Static linter and token estimator for Agent Skills (SKILL.md).
+Evaluates syntax, triggers, token budget, and validates relative file links.
 """
 
 from pathlib import Path
@@ -58,7 +59,6 @@ class SimpleYAMLParser:
 
             # Key: value pair
             if ":" in stripped:
-                # Flush previous list
                 current_list = None
                 key_part, val_part = stripped.split(":", 1)
                 key = key_part.strip()
@@ -84,7 +84,6 @@ class SimpleYAMLParser:
                     data[key] = items
                     current_key = key
                 elif val == "":
-                    # Might be multiline or list to follow
                     data[key] = ""
                     current_key = key
                 else:
@@ -92,7 +91,6 @@ class SimpleYAMLParser:
                     current_key = key
             else:
                 if current_key and isinstance(data.get(current_key), str):
-                    # Multiline string append
                     data[current_key] += " " + stripped
                 else:
                     issues.append(DiagnosticIssue(
@@ -115,7 +113,8 @@ class SkillLinter:
         "intended for", "instructions for"
     ]
 
-    TOOL_REF_REGEX = re.compile(r"`([a-zA-Z0-9_-]+)`|\b([a-zA-Z0-9_]+)\(")
+    SIBLING_SKILLS = {"1-start", "2-scope", "3-prd", "4-spec", "5-build", "6-ship"}
+    LINK_REGEX = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
 
     @classmethod
     def estimate_tokens(cls, text: str) -> int:
@@ -125,29 +124,93 @@ class SkillLinter:
 
     @classmethod
     def extract_tool_references(cls, frontmatter: Dict[str, Any], body: str) -> List[str]:
-        """Extracts tool names referenced in frontmatter or markdown prompt instructions."""
+        """
+        Extracts tool names referenced ONLY from:
+        1. Explicit frontmatter lists: mcp_tools: [...] or tools: [...] in YAML frontmatter.
+        2. Backticked tool names inside a markdown section whose heading explicitly contains 'MCP' or 'Tools'.
+        Never extracts sibling skill names or arbitrary backticked code in other sections.
+        """
         tools = set()
 
-        # Tools declared explicitly in frontmatter
-        for key in ["tools", "allowed_tools", "mcp_tools", "requires_tools"]:
+        # 1. Explicit frontmatter lists
+        for key in ["mcp_tools", "tools", "requires_tools", "allowed_tools"]:
             if key in frontmatter:
                 val = frontmatter[key]
                 if isinstance(val, list):
                     for item in val:
-                        tools.add(str(item).strip())
+                        s_val = str(item).strip()
+                        if s_val and s_val not in cls.SIBLING_SKILLS:
+                            tools.add(s_val)
                 elif isinstance(val, str):
-                    tools.add(val.strip())
+                    s_val = val.strip()
+                    if s_val and s_val not in cls.SIBLING_SKILLS:
+                        tools.add(s_val)
 
-        # Tools referenced in markdown code snippets or tool calls
-        matches = cls.TOOL_REF_REGEX.findall(body)
-        for m1, m2 in matches:
-            candidate = m1 or m2
-            if candidate and len(candidate) > 2 and not candidate.isnumeric():
-                # Avoid standard markdown / programming keywords
-                if candidate.lower() not in {"bash", "python", "json", "true", "false", "null", "none", "self", "import"}:
-                    tools.add(candidate)
+        # 2. Markdown sections whose heading explicitly contains 'MCP' or 'Tools'
+        lines = body.splitlines()
+        in_tool_section = False
+
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                heading_lower = stripped.lower()
+                # Must be a section explicitly covering MCP or Tools
+                if "mcp" in heading_lower or "tool" in heading_lower:
+                    in_tool_section = True
+                else:
+                    in_tool_section = False
+                continue
+
+            if in_tool_section:
+                # Find backticked identifiers: `tool_name`
+                matches = re.findall(r"`([a-zA-Z0-9_\-]+)`", line)
+                for candidate in matches:
+                    candidate = candidate.strip()
+                    if candidate and candidate not in cls.SIBLING_SKILLS:
+                        if candidate.lower() not in {"bash", "python", "json", "true", "false", "null", "none", "string", "object", "array"}:
+                            tools.add(candidate)
 
         return sorted(list(tools))
+
+    @classmethod
+    def check_relative_links(cls, content: str, file_path: str) -> List[DiagnosticIssue]:
+        """Validates that local relative file links exist on disk."""
+        issues = []
+        if not file_path or file_path == "SKILL.md":
+            return issues
+
+        doc_dir = Path(file_path).resolve().parent
+        if not doc_dir.exists():
+            return issues
+
+        for match in cls.LINK_REGEX.finditer(content):
+            link_target = match.group(2).strip()
+
+            # Ignore external URLs, mailto, anchor-only links
+            if (
+                link_target.startswith("http://")
+                or link_target.startswith("https://")
+                or link_target.startswith("mailto:")
+                or link_target.startswith("ftp://")
+                or link_target.startswith("#")
+            ):
+                continue
+
+            # Strip query params or hash anchors
+            clean_target = link_target.split("#")[0].split("?")[0].strip()
+            if not clean_target:
+                continue
+
+            target_path = (doc_dir / clean_target).resolve()
+            if not target_path.exists():
+                issues.append(DiagnosticIssue(
+                    rule_id="SKILL006",
+                    severity="WARNING",
+                    message=f"Broken relative file link: '{clean_target}' does not exist on disk.",
+                    suggestion=f"Verify target file '{clean_target}' exists relative to '{doc_dir.name}'."
+                ))
+
+        return issues
 
     @classmethod
     def lint_text(cls, content: str, file_path: str = "SKILL.md") -> SkillReport:
@@ -267,6 +330,10 @@ class SkillLinter:
                 message=f"High prompt token estimate: ~{token_count} tokens (exceeds recommended 2,500 budget).",
                 suggestion="Refactor verbose prompt instructions into reference files to save agent context budget."
             ))
+
+        # Rule SKILL006: Broken Relative Links
+        link_issues = cls.check_relative_links(content, file_path)
+        issues.extend(link_issues)
 
         referenced_tools = cls.extract_tool_references(frontmatter, body_text)
         is_valid = not any(i.severity == "ERROR" for i in issues)

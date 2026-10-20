@@ -74,3 +74,4 @@ Activity mode: Live package execution and test suite run.
 
 - [Windows console encoding and banner escape] — Resolved UnicodeEncodeError on cp1252 Windows console by configuring stdout reconfigure utf-8 with replace fallback and using raw strings for ASCII banner.
 - [Subprocess risk elimination] — Shifted MCP validation from live child process stdio execution to deterministic MCP 2025-11-25 schema & ghost tool contract validation to eliminate pipe hangs and deadlocks.
+- [Scoring reconciliation & fixture suite] — Reconciled Health Score math to 1:1 deterministic formula (-20 error / -5 warning), scoped tool extraction to explicit frontmatter/sections, added SKILL006 broken relative link rule, and created coherent healthy (100% Grade A) and broken (25% Grade F) demo fixture workspaces.

@@ -37,3 +37,34 @@ def test_cli_scan_full(capsys):
     assert "Ecosystem Health Score" in captured.out
     assert "Agent Skills Validation" in captured.out
     assert "Model Context Protocol" in captured.out
+
+
+def test_cli_healthy_workspace(capsys):
+    exit_code = main([
+        "scan",
+        "--skills-dir", "examples/healthy_workspace/skills",
+        "--mcp-config", "examples/healthy_workspace/mcp_tools.json"
+    ])
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "100% (A)" in captured.out
+    assert "Total Critical Errors:" in captured.out
+    assert "Total Warnings:" in captured.out
+    assert "Ghost Tools:" in captured.out
+    assert "Orphan Tools:" in captured.out
+    assert "Score Formula: 100 - (0 errors × 20) - (0 warnings × 5) = 100% (A)" in captured.out
+
+
+def test_cli_broken_workspace(capsys):
+    exit_code = main([
+        "scan",
+        "--skills-dir", "examples/broken_workspace/skills",
+        "--mcp-config", "examples/broken_workspace/mcp_tools.json"
+    ])
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "delete_production_db" in captured.out  # Ghost tool
+    assert "legacy_orphan_tool" in captured.out    # Orphan tool
+    assert "broken_schema_tool" in captured.out    # Schema error
+    assert "references/missing.md" in captured.out # Broken relative link
+    assert "Score Formula:" in captured.out
