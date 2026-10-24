@@ -76,6 +76,7 @@ Carried forward from `prd.md > Look and Feel`:
 - Validates MCP tool definition schemas against `2025-11-25` standards (`MCP001`, `MCP002`).
 - Cross-references tools called or referenced in `SKILL.md` files against defined tools to flag Ghost Tools (`MCP003`).
 - Identifies orphaned/undocumented MCP tools (`MCP004`).
+- Identifies unimplemented placeholder stubs (`MCP005`).
 - Runs deterministically in <10ms with zero subprocess deadlock or pipe hang risk.
 
 ### 4. HealthScorer (`skillpulse/scorer.py`)
@@ -90,7 +91,7 @@ Carried forward from `prd.md > Look and Feel`:
 
 ## Data Model
 - **`DiagnosticIssue`:**
-  - `rule_id: str` (e.g. `SKILL001`, `MCP001`)
+  - `rule_id: str` (e.g. `SKILL001`, `MCP001`, `MCP005`)
   - `severity: str` (`ERROR`, `WARNING`, `INFO`)
   - `message: str`
   - `line_number: Optional[int]`
@@ -107,12 +108,14 @@ Carried forward from `prd.md > Look and Feel`:
   - `name: str`
   - `description: str`
   - `input_schema: dict`
+  - `is_stub: bool`
 - **`MCPReport`:**
   - `source_file: str`
   - `protocol_version: str`
   - `tools: List[MCPTool]`
   - `ghost_tools: List[str]`
   - `orphan_tools: List[str]`
+  - `stub_tools: List[str]`
   - `issues: List[DiagnosticIssue]`
 - **`ScanResult`:**
   - `timestamp: str`
@@ -182,4 +185,10 @@ skillpulse/
 
 ## Decisions and Open Issues
 - **Tool Reference Extraction:** `linter.py` extracts tool mentions only from explicit frontmatter lists (`mcp_tools`, `tools`) or backticked identifiers in markdown sections containing "MCP" or "Tools" in their heading, deliberately excluding sibling skill names (`1-start`, `2-scope`, etc.) to prevent false positives.
-- **No Open Issues:** The technical specification is complete, sized appropriately for the proof of concept, and ready for immediate implementation in `5-build`.
+- **Sprint Upgrades Completed:**
+  - **CI/CD Serialization & Rehydration:** Added `from_dict()` classmethods across all models (`ScanResult`, `SkillReport`, `MCPReport`, `MCPTool`, `DiagnosticIssue`) and updated `skillpulse report --from-json <results.json>` to rehydrate and compile reports without filesystem re-scanning.
+  - **Machine-Readable & PR Formats:** Implemented `--format {text,json,markdown}` and `--json-output <path>` flags across CLI commands for headless CI pipelines and GitHub PR comments.
+  - **Deterministic Contract Auto-Fixer (`skillpulse fix`):** Implemented `WorkspaceFixer` in `skillpulse/fixer.py` to auto-generate MCP 2025-11-25 placeholder stubs for ghost tools (`MCP003`), repair broken tool schemas (`MCP002`), and inject compliant YAML descriptions (`SKILL003`) with atomic file writes and `--dry-run` / `--output-dir` support.
+  - **Dashboard Topology Map & Context Meter:** Enhanced `skillpulse-report.html` with an interactive Skill <-> MCP Contract Topology Map, multi-tier Model Context Budget Meter (8k, 128k, 200k, 1M limits), and 1-click clipboard actions for PR Markdown summaries and remediation snippets.
+- **No Open Issues:** All proof-of-concept requirements and sprint upgrades are complete, verified by 43 automated pytest test cases.
+

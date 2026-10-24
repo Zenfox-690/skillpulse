@@ -126,3 +126,44 @@ def test_config_discovery(tmp_path: Path):
 
     found = MCPConfigDiscovery.find_mcp_config(tmp_path)
     assert found == config_file
+
+
+def test_unimplemented_stub_detection():
+    data = {
+        "tools": [
+            {
+                "name": "live_tool",
+                "description": "Production ready tool",
+                "inputSchema": {"type": "object", "properties": {}}
+            },
+            {
+                "name": "auto_stub_by_field",
+                "description": "Stub created by auto-fixer",
+                "inputSchema": {"type": "object", "properties": {}},
+                "x_skillpulse_stub": True
+            },
+            {
+                "name": "auto_stub_by_desc",
+                "description": "[AUTO-GENERATED STUB] Placeholder tool",
+                "inputSchema": {"type": "object", "properties": {}}
+            }
+        ]
+    }
+    report = MCPContractValidator.validate_tools_data(data, "stub_test.json")
+    assert report.error_count == 0
+    assert report.warning_count == 2
+    assert "auto_stub_by_field" in report.stub_tools
+    assert "auto_stub_by_desc" in report.stub_tools
+    assert "live_tool" not in report.stub_tools
+
+    # Verify tool models have is_stub set
+    tools_by_name = {t.name: t for t in report.tools}
+    assert tools_by_name["live_tool"].is_stub is False
+    assert tools_by_name["auto_stub_by_field"].is_stub is True
+    assert tools_by_name["auto_stub_by_desc"].is_stub is True
+
+    # Verify MCP005 diagnostic issues emitted
+    mcp005_issues = [i for i in report.issues if i.rule_id == "MCP005"]
+    assert len(mcp005_issues) == 2
+    assert all(i.severity == "WARNING" for i in mcp005_issues)
+
