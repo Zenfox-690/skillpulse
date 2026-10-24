@@ -179,15 +179,30 @@ class MCPContractValidator:
                                     suggestion=f"Add definition for '{req}' under inputSchema.properties."
                                 ))
 
+            # Rule MCP005: Unimplemented Placeholder Stub Detection
+            is_stub = bool(
+                tool_dict.get("x_skillpulse_stub") is True
+                or "[AUTO-GENERATED STUB]" in str(desc)
+            )
+            if is_stub:
+                issues.append(DiagnosticIssue(
+                    rule_id="MCP005",
+                    severity="WARNING",
+                    message=f"Unimplemented Placeholder Stub: Tool '{name}' has a valid schema structure but is marked as an un-implemented placeholder stub.",
+                    suggestion=f"Implement the backend execution logic and tests for '{name}' before relying on it in production."
+                ))
+
             parsed_tools.append(MCPTool(
                 name=name,
                 description=str(desc),
-                input_schema=schema
+                input_schema=schema,
+                is_stub=is_stub,
             ))
 
         # Cross-Checking with Agent Skills
         ghost_tools = []
         orphan_tools = []
+        stub_tools = [t.name for t in parsed_tools if t.is_stub]
 
         if scanned_skills:
             all_referenced_tools = set()
@@ -230,6 +245,7 @@ class MCPContractValidator:
             tools=parsed_tools,
             ghost_tools=ghost_tools,
             orphan_tools=orphan_tools,
+            stub_tools=stub_tools,
             issues=issues
         )
 
